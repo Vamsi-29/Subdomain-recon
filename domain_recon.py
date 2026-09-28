@@ -1,3 +1,4 @@
+import shlex
 import subprocess
 import threading
 import tkinter as tk
@@ -56,6 +57,7 @@ def start_recon(domain, log_widget, start_button, root):
 
     def pipeline():
         clean_domain = sanitize_domain(domain)
+        safe_domain = shlex.quote(clean_domain)
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         output_dir = os.path.join(os.getcwd(), f"{clean_domain}_{timestamp}")
@@ -67,7 +69,7 @@ def start_recon(domain, log_widget, start_button, root):
         # ---------------- Subfinder ----------------
         log_widget.insert(tk.END, "[+] Running subfinder...\n")
         if not run_command(
-            f"subfinder -d {clean_domain} -silent > subfinder.txt",
+            f"subfinder -d {safe_domain} -silent > subfinder.txt",
             log_widget,
             cwd=output_dir
         ):
@@ -76,7 +78,7 @@ def start_recon(domain, log_widget, start_button, root):
         # ---------------- Assetfinder ----------------
         log_widget.insert(tk.END, "[+] Running assetfinder...\n")
         if not run_command(
-            f"assetfinder --subs-only {clean_domain} > assetfinder.txt",
+            f"assetfinder --subs-only {safe_domain} > assetfinder.txt",
             log_widget,
             cwd=output_dir
         ):
