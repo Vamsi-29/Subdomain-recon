@@ -4,9 +4,11 @@ import threading
 import tkinter as tk
 from tkinter import scrolledtext, messagebox
 import os
+import re
 from datetime import datetime
 
 AUTO_EXIT_DELAY = 5000  # 5 seconds
+DOMAIN_PATTERN = re.compile(r"^(?=.{1,253}$)(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,63}$")
 
 
 # ------------------ Utility ------------------
@@ -45,6 +47,10 @@ def sanitize_domain(domain):
     return domain.strip().rstrip("/")
 
 
+def is_valid_domain(domain):
+    return bool(DOMAIN_PATTERN.fullmatch(domain))
+
+
 # ------------------ Main Pipeline ------------------
 
 def start_recon(domain, log_widget, start_button, root):
@@ -52,11 +58,15 @@ def start_recon(domain, log_widget, start_button, root):
         messagebox.showerror("Error", "Domain cannot be empty.")
         return
 
+    clean_domain = sanitize_domain(domain)
+    if not is_valid_domain(clean_domain):
+        messagebox.showerror("Error", "Enter a valid domain such as example.com.")
+        return
+
     start_button.config(state=tk.DISABLED)
     log_widget.delete(1.0, tk.END)
 
     def pipeline():
-        clean_domain = sanitize_domain(domain)
         safe_domain = shlex.quote(clean_domain)
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
